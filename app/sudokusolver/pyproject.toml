@@ -1,0 +1,49 @@
+[tool.briefcase]
+project_name = "Sudoku Solver"
+bundle = "de.shobowale"
+version = "0.0.1"
+url = "https://shobowale.de/sudokusolver"
+license = "GNU General Public License v3 or later (GPLv3+)"
+author = 'Peter Shobowale'
+author_email = "pshobowale@gmail.com"
+
+[tool.briefcase.app.sudokusolver]
+formal_name = "Sudoku Solver"
+description = "solves sudokus"
+icon = "src/sudokusolver/resources/sudokusolver"
+sources = ['src/sudokusolver']
+requires = []
+
+
+[tool.briefcase.app.sudokusolver.macOS]
+requires = [
+    'toga-cocoa>=0.3.0.dev20',
+]
+
+[tool.briefcase.app.sudokusolver.linux]
+requires = [
+    'toga-gtk>=0.3.0.dev20',
+]
+system_requires = [
+    'libgirepository1.0-dev',
+    'libcairo2-dev',
+    'libpango1.0-dev',
+    'libwebkitgtk-3.0-0',
+    'gir1.2-webkit-3.0',
+]
+
+[tool.briefcase.app.sudokusolver.windows]
+requires = [
+    'toga-winforms>=0.3.0.dev20',
+]
+
+# Mobile deployments
+[tool.briefcase.app.sudokusolver.iOS]
+requires = [
+    'toga-iOS>=0.3.0.dev20',
+]
+
+[tool.briefcase.app.sudokusolver.android]
+requires = [
+    'toga-android>=0.3.0.dev20',
+]

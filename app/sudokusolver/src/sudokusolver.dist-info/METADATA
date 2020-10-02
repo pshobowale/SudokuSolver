@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Briefcase-Version: 0.3.3
+Name: sudokusolver
+Formal-Name: Sudoku Solver
+App-ID: de.shobowale.sudokusolver
+Version: 0.0.1
+Home-page: https://shobowale.de/sudokusolver
+Author: Peter Shobowale
+Author-email: pshobowale@gmail.com
+Summary: solves sudokus
