@@ -3,13 +3,13 @@ project_name = "Sudoku Solver"
 bundle = "de.shobowale"
 version = "0.0.1"
 url = "https://shobowale.de/sudokusolver"
-license = "GNU General Public License v3 or later (GPLv3+)"
+license = "MIT license"
 author = 'Peter Shobowale'
 author_email = "pshobowale@gmail.com"
 
 [tool.briefcase.app.sudokusolver]
 formal_name = "Sudoku Solver"
-description = "solves sudokus"
+description = "A Briefcase Implemenetation of a Sudoku Solver"
 icon = "src/sudokusolver/resources/sudokusolver"
 sources = ['src/sudokusolver']
 requires = []

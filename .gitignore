@@ -2,3 +2,6 @@ app/.vscode/
 app/sudokusolver/linux/
 app/sudokusolver/src/sudokusolver/__pycache__/
 app/venv/
+test/Samples/
+test/Dataset/
+.vscode

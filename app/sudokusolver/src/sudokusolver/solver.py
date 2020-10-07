@@ -200,4 +200,3 @@ if __name__=="__main__":
     print("\n\n Solution")
     #solver.print(solver.getClue)
     solver.printGrid()
-
