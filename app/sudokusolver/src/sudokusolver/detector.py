@@ -9,10 +9,13 @@ from numba import jit
 from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #To supress TF messages
 from tensorflow.keras.models import Sequential, save_model, load_model
-import os
+
+
+
 class detector:
-    def __init__(self,image_src=None):
+    def __init__(self,image_src=None,load_keras_model=True):
         '''Initizialize detector
 
         Args:
@@ -23,11 +26,10 @@ class detector:
         self.ROI=None
         self.possible_digits=None
         
-        #self.model=load_model("DigitClassifier.keras")
-        #self.model=load_model("./src/sudokusolver/resources/DigitClassifier.keras")
 
-        self.model=load_model("./resources/DigitClassifier.keras")
-        #print(image_src)
+        if(load_keras_model):
+            self.model=load_model("./resources/DigitClassifier.keras")
+
         if image_src is None:
             return
 
@@ -43,7 +45,10 @@ class detector:
         self.Org=cv.cvtColor(self.Org_Color,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
         self.Org=(self.Org-np.min(self.Org))/(np.max(self.Org)-np.min(self.Org))*255            #Normalization
         
-        
+    def loadModel(path):
+        if path is None:
+            path="./resources/DigitClassifier.keras"
+        self.model=load_model(path)       
   
     def variance_filter(self,I=None, n=5):
         if I is None:
