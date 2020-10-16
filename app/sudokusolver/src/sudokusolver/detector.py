@@ -9,7 +9,7 @@ from numba import jit
 from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #To supress TF messages
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'; #To supress TF messages
 from tensorflow.keras.models import Sequential, save_model, load_model
 
 
@@ -25,28 +25,30 @@ class detector:
         self.Org=None
         self.ROI=None
         self.possible_digits=None
+        self.cordROI=None
         
 
         if(load_keras_model):
-            self.model=load_model("./resources/DigitClassifier.keras")
+            print("Loading Kerasmodell from:",os.path.abspath("./src/sudokusolver/resources/DigitClassifier.keras"))
+            self.model=load_model(os.path.abspath("./src/sudokusolver/resources/DigitClassifier.keras"))
 
         if image_src is None:
             return
 
         if isinstance(image_src,str):
-            self.Org=cv.imread(image_src)
+            self.Org_Color=cv.imread(image_src)
                        
         else:
-            self.Org=image_src
-        print(image_src)
+            self.Org_Color=image_src
         
         #Rescale and convert color
-        self.Org_Color=cv.resize(self.Org,(600,round(self.Org.shape[0]/self.Org.shape[1]*600))) #Scaling to 400px width
-        self.Org=cv.cvtColor(self.Org_Color,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
+        self.Org=cv.resize(self.Org_Color[0],(600,round(self.Org_Color.shape[0]/self.Org_Color.shape[1]*600))) #Scaling to 400px width
+        self.Org=cv.cvtColor(self.Org,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
         self.Org=(self.Org-np.min(self.Org))/(np.max(self.Org)-np.min(self.Org))*255            #Normalization
         
     def loadModel(path):
         if path is None:
+            print("Loading Kerasmodell from: ",os.path.abspath(path))
             path="./resources/DigitClassifier.keras"
         self.model=load_model(path)       
   
@@ -70,7 +72,6 @@ class detector:
         h,w=I.shape
         result=np.zeros(I.shape,dtype=np.int32)
 
-        print(h,w)
         for y in range(h):
             for x in range(w):
                 
@@ -107,9 +108,7 @@ class detector:
         contours=np.sqrt(contours)
         contours=np.array(contours,dtype=np.uint8)                                    #Conversion from float to int
         contours = cv.threshold(contours,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]    #Threshold
-        #plt.imshow(contours,cmap="gray")
-        #plt.colorbar()
-        #plt.show()
+        
         
         #Searching for the Grid
         contours, hierarchy = cv.findContours(contours,cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)       
@@ -118,37 +117,66 @@ class detector:
         cnt=contours[max_index]
         epsilon = 0.1*cv.arcLength(cnt,True)
         approx = cv.approxPolyDP(cnt,epsilon,True)                                  #approx a bounding box
-        print(approx)
+        
         return approx
 
     def getROI(self,I=None,contour=None,ignore=False):
         
+        
+        usingOrg=False
 
         if I is None:
-            if self.Org is not None:
+            if self.ROI is not None:
+                if self.cordROI is None:
+                    self.cordROI=self.findGrid()
+                    return(self.ROI,self.cordROI)
+                else:
+                    return (self.ROI,self.cordROI)
+            elif self.Org is not None:
                 I=np.copy(self.Org)
                 
-        else :
-            return None
+            else :
+                return None
+
+            usingOrg=True
+            
         
         if contour is None:
             contour=self.findGrid(I)
-            
-        #print(contour)
+       
+
+        #Rescaling found Points to Orignial Size    
+        if usingOrg:
+            ROI=np.copy(self.Org_Color)
+            ROI=cv.cvtColor(ROI,cv.COLOR_RGB2GRAY)
+            h,w=ROI.shape
+            h_old,w_old=self.Org.shape
+            pts_src=contour.flatten()
+
+            for i in range(len(pts_src)):
+                if i%2:
+                    pts_src[i]=pts_src[i]*h/h_old
+                else:
+                    pts_src[i]=pts_src[i]*w/w_old
+
+        else:
+            ROI=np.copy(I)
+            pts_src=contour.flatten()
         
-        ROI=np.copy(I)
         pts_dst = np.float32([[0,0],[0,180],[180, 0],[180, 180]])
-        pts_src=contour.flatten()
+
+        
+
 
         if len(pts_src)!=8:
             return None
 
         pts_src=np.float32([[pts_src[0],pts_src[1]],[pts_src[2],pts_src[3]],[pts_src[6], pts_src[7]],[pts_src[4], pts_src[5]]])
         trans = cv.getPerspectiveTransform(pts_src, pts_dst)
+        ROI=ROI-np.min(ROI)
         ROI = cv.warpPerspective(ROI, trans, (180,180))
+        ROI=ROI-np.min(ROI)
 
-        if ignore is False:
-            self.ROI=ROI
         return (ROI,pts_src)
 
     def getImage(self):
@@ -160,25 +188,34 @@ class detector:
             return
 
         if isinstance(image_src,str):
-            self.Org=cv.imread(image_src)
+            self.Org_Color=cv.imread(image_src)
                        
         else:
-            self.Org=image_src
-        print(image_src)
+            self.Org_Color=image_src
         
         #Rescale and convert color
-        self.Org_Color=cv.resize(self.Org,(400,round(self.Org.shape[0]/self.Org.shape[1]*400))) #Scaling to 400px width
-        self.Org=cv.cvtColor(self.Org_Color,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
+        self.Org=cv.resize(self.Org_Color,(400,round(self.Org_Color.shape[0]/self.Org_Color.shape[1]*400))) #Scaling to 400px width
+        self.Org=cv.cvtColor(self.Org,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
         self.Org=(self.Org-np.min(self.Org))/(np.max(self.Org)-np.min(self.Org))*255   
+        self.ROI=None
+        self.cordROI=None
+        self.possible_digits=None
+        
 
-    def getDigits(self,ROI=None,ignore=False):
+    def getDigits(self,ROI=None):
+        save2self=True
         if ROI is None:
+            if self.possible_digits is not None:
+                return possible_digits
             if self.ROI is not None:
                 ROI=self.ROI
             elif self.Org is not None:
                 ROI=self.getROI()[0]
+                self.ROI=ROI
             else:
-                return None
+                return False
+        else:
+            save2self=True
         ROI=ROI-np.min(ROI)
         possible_digits=[]
         digits=ROI\
@@ -187,7 +224,9 @@ class detector:
         digits=-(digits-np.max(digits))
         digits=digits/np.max(digits)*255
 
-
+        plt.imshow(digits,cmap="gray")
+        plt.colorbar()
+        plt.show()
         kernel=np.zeros((20,20))
         kernel[2:17,4:15]=cv.getStructuringElement(cv.MORPH_ELLIPSE,(11,15))
         kernel*=np.dot(cv.getGaussianKernel(20,4),cv.getGaussianKernel(20,3).T)
@@ -212,17 +251,22 @@ class detector:
                     possible_digits.append((ROI[i:i+20,j:j+20],(i,j)))
                     
 
-        if ignore is False:
-            self.possible_digits=possible_digits
+        if save2self:
+            self.possible_digits=None
+
         return possible_digits
 
     def saveDigits(self,dst,possible_digits=None,name=None):
         
         if possible_digits is None:
-            if self.Org is not None:
+            if self.possible_digits is not None:
+                possible_digits=self.possible_digits
+            elif self.Org is not None:
                 possible_digits=self.getDigits()
+                self.possible_digits=possible_digits
             else:
                 return
+
         if name is None:
             name=datetime.utcnow().strftime("%Y%m%d%h%m%s")
 
@@ -230,12 +274,27 @@ class detector:
             if I[0].shape[0]==20 and I[0].shape[1]==20:
                 plt.imsave(dst+"/"+name+str(I[1])+".bmp",I[0],cmap="gray")
             
+    def saveImage(I=None,path=None):
+        if I is None or path is None:
+            return 
+        else:
+            plt.imsave(path,I,cmap="gray")
 
     def classifyDigits(self,possible_digits=None):
         if possible_digits is None:
-            possible_digits=self.getDigits()
-            if possible_digits is None:
-                return None
+            if self.possible_digits is not None:
+                possible_digits=self.possible_digits
+            else:
+                possible_digits=self.getDigits()
+                
+                if possible_digits is None:
+                    return None
+                else:
+                    if len(possible_digits)>0:
+                        self.possible_digits=possible_digits
+                    else:
+                        return None
+        
 
         digit=[]
         pos=[]
