@@ -5,11 +5,12 @@
 
 import cv2 as cv
 import numpy as np
-from numba import njit
+from numba import jit
 from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
-
+from tensorflow.keras.models import Sequential, save_model, load_model
+import os
 class detector:
     def __init__(self,image_src=None):
         '''Initizialize detector
@@ -17,11 +18,15 @@ class detector:
         Args:
             image_src: can be a string with a path to an image or an np.array
         '''
-
         #Load Image
         self.Org=None
         self.ROI=None
         self.possible_digits=None
+        
+        #self.model=load_model("DigitClassifier.keras")
+        #self.model=load_model("./src/sudokusolver/resources/DigitClassifier.keras")
+
+        self.model=load_model("./resources/DigitClassifier.keras")
         #print(image_src)
         if image_src is None:
             return
@@ -37,7 +42,7 @@ class detector:
         self.Org_Color=cv.resize(self.Org,(600,round(self.Org.shape[0]/self.Org.shape[1]*600))) #Scaling to 400px width
         self.Org=cv.cvtColor(self.Org_Color,cv.COLOR_RGB2GRAY)                                  #Convert to black and white
         self.Org=(self.Org-np.min(self.Org))/(np.max(self.Org)-np.min(self.Org))*255            #Normalization
-
+        
         
   
     def variance_filter(self,I=None, n=5):
@@ -54,7 +59,7 @@ class detector:
 
         
     @staticmethod
-    @njit(nopython=True)
+    @jit(nopython=True)
     def variance_filter_jit(I,n,mean):  
         
         h,w=I.shape
@@ -142,7 +147,8 @@ class detector:
         return (ROI,pts_src)
 
     def getImage(self):
-        return self.Org_Color
+        if self.Org_Color is not None:
+            return self.Org_Color
 
     def newImage(self,image_src):
         if image_src is None:
@@ -165,7 +171,7 @@ class detector:
             if self.ROI is not None:
                 ROI=self.ROI
             elif self.Org is not None:
-                ROI=getROI()[0]
+                ROI=self.getROI()[0]
             else:
                 return None
         ROI=ROI-np.min(ROI)
@@ -220,7 +226,33 @@ class detector:
                 plt.imsave(dst+"/"+name+str(I[1])+".bmp",I[0],cmap="gray")
             
 
+    def classifyDigits(self,possible_digits=None):
+        if possible_digits is None:
+            possible_digits=self.getDigits()
+            if possible_digits is None:
+                return None
 
+        digit=[]
+        pos=[]
+        for d in possible_digits:
+            if d[0].shape[0]==20 and d[0].shape[1]==20:
+                digit.append(d[0]/255)
+                pos.append(d[1])
+
+        digitm=np.array(digit,dtype=np.float)
+        digitm=np.expand_dims(digitm, -1)
+
+        y=self.model.predict(digitm)
+        prediction=[] 
+        for p in y:
+            prediction.append(np.argmax(p))
+
+        sudoku=np.zeros((9,9),dtype=np.uint8)
+        for i in range(len(pos)):
+            p=pos[i]
+            sudoku[(p[0]+10)//20,(p[1]+10)//20]=prediction[i]
+        
+        return (sudoku,zip(digit*255,pos,prediction))
 
 
 if __name__=="__main__":
@@ -228,8 +260,8 @@ if __name__=="__main__":
 
     img_path=[]
 
-    #img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/"
-    img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/wichtounet/v2_test/"
+    img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/"
+    #img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/wichtounet/v2_test/"
     img_files=os.listdir(img_dir)
     print(img_files)
     
@@ -247,20 +279,16 @@ if __name__=="__main__":
         
         
         if I is not None:
-            detected+=1
-            detector.saveDigits("/home/seun/Documents/Programme/Python/SudokuSolver/test/Dataset/Train",name=f)
-            #I=I[0]
-            #plt.subplot(221)
-            #plt.imshow(I,cmap="gray")
-            #plt.colorbar()
-            #plt.subplot(223)
-            #plt.imshow(detector.getImage())
-            #plt.colorbar()
-            #plt.show()
-        #else:
-        #    print(img_dir+f)
-        #    plt.imshow(detector.variance_filter(cv.cvtColor(plt.imread(img_dir+f),cv.COLOR_RGB2GRAY)))
-        #    plt.show()
+            Org=detector.getImage()
+            pd=detector.getDigits(I[0])
+            digits=detector.classifyDigits(pd)
+            sudoku=digits[0]
+            print(sudoku)
+            plt.imshow(Org)
+            plt.show()
+                
+            #detector.saveDigits("/home/seun/Documents/Programme/Python/SudokuSolver/test/Dataset/Train",name=f)
+
     print("detected ", detected,"of ",len(img_path))
         
         
