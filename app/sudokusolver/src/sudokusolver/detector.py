@@ -173,9 +173,9 @@ class detector:
 
         pts_src=np.float32([[pts_src[0],pts_src[1]],[pts_src[2],pts_src[3]],[pts_src[6], pts_src[7]],[pts_src[4], pts_src[5]]])
         trans = cv.getPerspectiveTransform(pts_src, pts_dst)
-        ROI=ROI-np.min(ROI)
+
         ROI = cv.warpPerspective(ROI, trans, (180,180))
-        ROI=ROI-np.min(ROI)
+
 
         return (ROI,pts_src)
 
@@ -213,10 +213,13 @@ class detector:
                 ROI=self.getROI()[0]
                 self.ROI=ROI
             else:
-                return False
+                return None
         else:
             save2self=True
+        
         ROI=ROI-np.min(ROI)
+        ROI=ROI/np.max(ROI)*255
+        
         possible_digits=[]
         digits=ROI\
                 -cv.dilate(ROI,cv.getStructuringElement(cv.MORPH_RECT,(11,1)))\
@@ -224,9 +227,6 @@ class detector:
         digits=-(digits-np.max(digits))
         digits=digits/np.max(digits)*255
 
-        plt.imshow(digits,cmap="gray")
-        plt.colorbar()
-        plt.show()
         kernel=np.zeros((20,20))
         kernel[2:17,4:15]=cv.getStructuringElement(cv.MORPH_ELLIPSE,(11,15))
         kernel*=np.dot(cv.getGaussianKernel(20,4),cv.getGaussianKernel(20,3).T)
@@ -252,7 +252,7 @@ class detector:
                     
 
         if save2self:
-            self.possible_digits=None
+            self.possible_digits=possible_digits
 
         return possible_digits
 
