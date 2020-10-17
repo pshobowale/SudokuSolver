@@ -163,7 +163,7 @@ class detector:
             ROI=np.copy(I)
             pts_src=contour.flatten()
         
-        pts_dst = np.float32([[0,0],[0,180],[180, 0],[180, 180]])
+        pts_dst = np.float32([[0,0],[0,252],[252, 0],[252, 252]])
 
         
 
@@ -174,7 +174,7 @@ class detector:
         pts_src=np.float32([[pts_src[0],pts_src[1]],[pts_src[2],pts_src[3]],[pts_src[6], pts_src[7]],[pts_src[4], pts_src[5]]])
         trans = cv.getPerspectiveTransform(pts_src, pts_dst)
 
-        ROI = cv.warpPerspective(ROI, trans, (180,180))
+        ROI = cv.warpPerspective(ROI, trans, (252,252))
 
 
         return (ROI,pts_src)
@@ -227,19 +227,19 @@ class detector:
         digits=-(digits-np.max(digits))
         digits=digits/np.max(digits)*255
 
-        kernel=np.zeros((20,20))
-        kernel[2:17,4:15]=cv.getStructuringElement(cv.MORPH_ELLIPSE,(11,15))
-        kernel*=np.dot(cv.getGaussianKernel(20,4),cv.getGaussianKernel(20,3).T)
+        kernel=np.zeros((28,28))
+        kernel[3:24,6:21]=cv.getStructuringElement(cv.MORPH_ELLIPSE,(15,21))
+        kernel*=np.dot(cv.getGaussianKernel(28,4),cv.getGaussianKernel(28,3).T)
         kernel/=np.sum(kernel)
 
-        kernel2=np.dot(cv.getGaussianKernel(20,5),cv.getGaussianKernel(20,4).T)
-        kernel2[2:17,4:15]=0
+        kernel2=np.dot(cv.getGaussianKernel(28,5),cv.getGaussianKernel(28,4).T)
+        kernel2[3:24,6:21]=0
         kernel2/=np.sum(kernel2)
-        kernel2-=np.ones((20,20))
+        kernel2-=np.ones((28,28))
         kernel2/=np.sum(abs(kernel2))
         kernel=kernel+kernel2
         img=cv.filter2D(digits,ddepth=cv.CV_32F,kernel=kernel,anchor=(0,0))
-        max=cv.dilate(img,np.ones((20,20)))
+        max=cv.dilate(img,np.ones((28,28)))
         max=img==max
         thr=img>15
         max=thr*max
@@ -248,7 +248,7 @@ class detector:
         for i in range(h):
             for j in range(w):
                 if max[i,j]:
-                    possible_digits.append((ROI[i:i+20,j:j+20],(i,j)))
+                    possible_digits.append((ROI[i:i+28,j:j+28],(i,j)))
                     
 
         if save2self:
@@ -271,7 +271,7 @@ class detector:
             name=datetime.utcnow().strftime("%Y%m%d%h%m%s")
 
         for I in possible_digits:
-            if I[0].shape[0]==20 and I[0].shape[1]==20:
+            if I[0].shape[0]==28 and I[0].shape[1]==28:
                 plt.imsave(dst+"/"+name+str(I[1])+".bmp",I[0],cmap="gray")
             
     def saveImage(I=None,path=None):
