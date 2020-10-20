@@ -29,7 +29,8 @@ class detector:
         
 
         if(load_keras_model):
-            print("Loading Kerasmodell from:",os.path.abspath("./src/sudokusolver/resources/DigitClassifier.keras"))
+            print("Loading keras model from:",os.path.abspath("./src/sudokusolver/resources/DigitClassifier.keras"))
+            
             self.model=load_model(os.path.abspath("./src/sudokusolver/resources/DigitClassifier.keras"))
 
         if image_src is None:
@@ -48,7 +49,7 @@ class detector:
         
     def loadModel(path):
         if path is None:
-            print("Loading Kerasmodell from: ",os.path.abspath(path))
+            print("Loading keras model from: ",os.path.abspath(path))
             path="./resources/DigitClassifier.keras"
         self.model=load_model(path)       
   
@@ -299,7 +300,7 @@ class detector:
         digit=[]
         pos=[]
         for d in possible_digits:
-            if d[0].shape[0]==20 and d[0].shape[1]==20:
+            if d[0].shape[0]==28 and d[0].shape[1]==28:
                 digit.append(d[0]/255)
                 pos.append(d[1])
 
@@ -314,7 +315,7 @@ class detector:
         sudoku=np.zeros((9,9),dtype=np.uint8)
         for i in range(len(pos)):
             p=pos[i]
-            sudoku[(p[0]+10)//20,(p[1]+10)//20]=prediction[i]
+            sudoku[(p[0]+12)//28,(p[1]+12)//28]=prediction[i]
         
         return (sudoku,zip(digit*255,pos,prediction))
 
@@ -324,8 +325,8 @@ if __name__=="__main__":
 
     img_path=[]
 
-    img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/"
-    #img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/test/Samples/wichtounet/v2_test/"
+    img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/doc/Samples/"
+    #img_dir="/home/seun/Documents/Programme/Python/SudokuSolver/doc/Samples/wichtounet/v2_test/"
     img_files=os.listdir(img_dir)
     print(img_files)
     

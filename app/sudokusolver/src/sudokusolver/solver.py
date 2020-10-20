@@ -2,9 +2,10 @@ import numpy as np
 
 class solver:
     def __init__(self):
-        self.grid= np.ones((9,9,9))
+        self.grid= np.ones((9,9,9),dtype=np.uint8)
+        self.Org=None
         self.isSolved=False
-        self.Errors=False
+        self.Error=False
     
     def setField(self,x,y,value):
         if value>0:
@@ -13,13 +14,17 @@ class solver:
         else:
             self.grid[x,y,:]=1
 
+        self.Org=np.copy(self.grid)
         #print("xyv",x,y,value)
         #print(self.grid[:3,5:])
 
-    
+    def clearGrid(self):
+        for i in range(9):
+            for j in range(9):
+                self.setField(i,j,0) 
 
-    def getGrid(self,S=None):
-        R=np.zeros((9,9))
+    def getGrid(self,S=None,ignoreNewPossibilites=False):
+        R=np.zeros((9,9),dtype=np.uint8)
 
         if S is None:
             S=self.grid
@@ -35,7 +40,10 @@ class solver:
                 if sum==1:
                     R[x,y]=v+1
                 if sum==0:
-                    self.Errors=True
+                    self.Error=True
+                    
+        if ignoreNewPossibilites:
+            return R
 
         for x in range(3):
             for y in range(3):
@@ -49,7 +57,7 @@ class solver:
                                 if nbh[j,k,i]:
                                     R[3*x+j,3*y+k]=i+1
                     if sum==0:
-                        self.Erros=True
+                        self.Error=True
 
         return R
 
@@ -65,12 +73,15 @@ class solver:
                 R[x,y]=sum
         return R
 
-    def printGrid(self,S=None):
+    def printGrid(self,S=None,R=None):
         if S is None:
             S=self.grid
+            if self.Error:
+                print("Sudoko not solvable")
             
+        if R is None:
+            R=self.getGrid(S)
 
-        R=self.getGrid(S)
         for y in range(9):
             for x in range(9):
                 if(R[x,y]):
@@ -83,6 +94,23 @@ class solver:
             print()
             if(y%3==2):
                 print("-\t-\t-\t-\t-\t-\t-\t-\t")
+
+        
+
+    def printOrg(self):
+        if self.Org is not None:
+            self.printGrid(R=self.getGrid(self.Org,ignoreNewPossibilites=True))
+
+    def printPossi(self):
+        self.printGrid(R=self.getPossibilitys())
+    def diff2Org(self):
+        if self.Org is None:
+            return None
+        
+        diff=self.getGrid(self.grid)-self.getGrid(self.Org,ignoreNewPossibilites=True)
+        self.printGrid(R=diff)
+        
+        return diff
 
         
 
@@ -113,7 +141,7 @@ class solver:
                     S[x,y,int(v-1)]=1
         return S
 
-    def getSolution(self):
+    def getObvious(self):
         S=np.copy(self.grid)
         New=self.getClue(S)
 
@@ -122,6 +150,8 @@ class solver:
             S=New
             New=self.getClue(S)
             
+            #print("\n\n")
+            #self.printPossi()
 
             if (self.Change(New,S)==0.0):
                 print("Iterations:",i)
@@ -134,69 +164,126 @@ class solver:
         print("target: \n",self.grid[:3,:3,0])
         return (self.isSolved,New)
 
+    def getSolution(self):
+        pass
 
 if __name__=="__main__":
     solver=solver()
-    solver.setField(0,0,1)
-    solver.setField(1,0,8)
-    solver.setField(0,1,5)
-    solver.setField(1,1,2)
-    solver.setField(2,1,3)
 
-    solver.setField(3,2,1)
-    solver.setField(4,1,4)
-    solver.setField(5,0,9)
+    def case1():
+        solver.setField(0,0,1)
+        solver.setField(1,0,8)
+        solver.setField(0,1,5)
+        #solver.setField(1,1,2)
+        solver.setField(2,1,3)
+        solver.setField(3,2,1)
+        solver.setField(4,1,4)
+        solver.setField(5,0,9)
+        solver.setField(7,0,4)
+        solver.setField(8,0,5)
+        solver.setField(7,1,8)
+        solver.setField(8,1,1)
+        solver.setField(0,4,2)
+        #solver.setField(2,5,7)
+        solver.setField(4,4,7)
+        #solver.setField(5,3,5)
+        solver.setField(3,5,8)
+        solver.setField(8,3,9)
+        solver.setField(8,4,6)
+        #solver.setField(6,5,1)
+        solver.setField(0,6,3)
+        solver.setField(0,8,8)
+        solver.setField(2,8,2)
+        solver.setField(2,7,5)
+        solver.setField(2,6,1)
+        solver.setField(3,6,4)
+        solver.setField(3,8,5)
+        solver.setField(5,8,7)
+        solver.setField(8,7,8)
+        #solver.setField(6,6,5)
+        solver.setField(7,6,6)
+ 
+        #Hinzufügen für komplett lösbares Sudoku
+        solver.setField(1,4,5)
+        solver.setField(1,5,3)
+        solver.setField(4,7,1)
+        solver.setField(5,5,4)
+        solver.setField(3,3,2)
+        solver.setField(2,3,8)
+        solver.setField(0,7,7)
 
-    solver.setField(7,0,4)
-    solver.setField(8,0,5)
-    solver.setField(7,1,8)
-    solver.setField(8,1,1)
+    def case2():
+        #test find with row const
+        solver.setField(0,1,1)
+        solver.setField(0,2,2)
+        solver.setField(0,3,3)
+        solver.setField(0,4,4)
+        solver.setField(0,5,5)
+        solver.setField(0,6,6)
+        solver.setField(0,7,7)
+        solver.setField(0,8,8)
+    def case3():
+        #test find with row and column
+        solver.setField(0,0,1)
+        solver.setField(8,1,9)
 
-    solver.setField(0,4,2)
-    solver.setField(2,5,7)
+        solver.setField(0,2,3)
+        solver.setField(0,3,4)
+        solver.setField(0,4,5)
+        solver.setField(0,5,6)
+        solver.setField(0,6,7)
+        solver.setField(0,7,8)
 
-    solver.setField(4,4,7)
-    solver.setField(5,3,5)
-    solver.setField(3,5,8)
+    def case4():
+        #Test find with row col const
+        solver.setField(0,0,9)
+        solver.setField(2,3,9)
+        solver.setField(3,6,9)
+        solver.setField(7,7,9)
+    
 
-    solver.setField(8,3,9)
-    solver.setField(8,4,6)
-    solver.setField(6,5,1)
+    def case5():
+        #Test find with row and nbh const
+        solver.setField(0,0,9)
+        solver.setField(2,3,9)
+        solver.setField(1,6,2)
+        solver.setField(1,7,5)
 
-    solver.setField(0,6,3)
-    solver.setField(0,8,8)
-    solver.setField(2,8,2)
-    solver.setField(2,7,5)
-    solver.setField(2,6,1)
+    def case6():
+        #Test find with nbh const
+        solver.setField(0,0,1)
+        solver.setField(0,1,2)
+        solver.setField(0,2,3)
+        solver.setField(1,0,4)
+        solver.setField(1,1,5)
+        solver.setField(1,2,6)
+        solver.setField(2,0,7)
+        solver.setField(2,1,8)
 
-    solver.setField(3,6,4)
-    solver.setField(3,8,5)
-    solver.setField(5,8,7)
+    
+    def case7():
+        solver.setField(0,0,1)
+        solver.setField(0,1,2)
+        solver.setField(0,2,3)
+        solver.setField(1,0,4)
+        solver.setField(1,1,5)
+        solver.setField(1,2,6)
+        solver.setField(3,0,7)
+        solver.setField(3,1,8)
+        solver.setField(4,0,9)
 
-    solver.setField(8,7,8)
-    solver.setField(6,6,5)
-    solver.setField(7,6,6)
+    #Evaluation
 
-    #Hinzufügen für komplett lösbares Sudoku
-   # solver.setField(1,4,5)
-   # solver.setField(1,5,3)
-   # solver.setField(4,7,1)
-   # solver.setField(5,5,4)
-   # solver.setField(3,3,2)
-   # solver.setField(2,3,8)
-   # solver.setField(0,7,7)
+    
+    case7()
 
+    solver.getObvious()
 
-    #'Test'
-    solver.printGrid()
-    solver.getSolution()
-    # print("\n\n Solution")
-    # solver.printGrid()
-    # solver.getSolution()
-    # print("\n\n Solution")
-    # solver.printGrid()
-    # solver.getSolution()
-
+    print("\n\n Org")
+    solver.printOrg()
+    print("\n\n Diff")
+    solver.diff2Org()
+    print("\n\n Possiblitys")
+    solver.printPossi()
     print("\n\n Solution")
-    #solver.print(solver.getClue)
     solver.printGrid()

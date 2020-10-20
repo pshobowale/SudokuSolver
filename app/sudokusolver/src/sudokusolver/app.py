@@ -27,7 +27,7 @@ class SudokuSolver(toga.App):
             self.grid.append([])
             row=toga.Box(style=Pack(direction=ROW, padding=0))
             for j in range(9):
-                self.grid[i].append(toga.Button(label=" ",id='{}{}'.format(i,j),on_press=self.pressedButton,style=Pack(flex=1)))
+                self.grid[i].append(toga.Button(label=" ",id='{}{}'.format(i,j),on_press=self.pressedButton,style=Pack(flex=1,background_color="white")))
                 row.add(self.grid[i][j])
                 if (j+1)%3==0 and j<8:
                     row.add(toga.Label(style=Pack(padding=0),text="\t"))
@@ -37,6 +37,7 @@ class SudokuSolver(toga.App):
         
         #adding solvebutton
         main_box.add(toga.Label(text="\t"))
+        main_box.add(toga.Button(label="Get obvious Fields",on_press=self.obviousButton))
         main_box.add(toga.Button(label="Solve",on_press=self.solveButton))
 
         selection_box=toga.Box(id="imagebox",style=Pack(direction=ROW,padding=10))
@@ -81,19 +82,28 @@ class SudokuSolver(toga.App):
             widget.label=str(int(widget.label)+1)
             self.solver.setField(int(widget.id[1]),int(widget.id[0]),int(widget.label)) #set Field[x,y]
     
-    def solveButton(self,widget):
+    def obviousButton(self,widget):
         self.solver.printGrid()
         #self.solver.getSolution()
         #self.solver.getSolution()
-        s,G=self.solver.getSolution()
+        s,G=self.solver.getObvious()
         self.solver.printGrid(G)
-        #print(G[-3:,-3:,:])
+        self.solver.printPossi()
+        solved=self.solver.diff2Org()
+        for i in range(9):
+            for j in range(9):
+                if(solved[j][i]):
+                    self.grid[i][j].label=str(int(solved[j][i]))
+                    
+
+    def solveButton(self,widget):
+        pass
 
     def openButton(self,widget):
         path=self.main_window.open_file_dialog("Select an Image",".",["jpg","jpeg","bmp"])
         self.detector.newImage(path)
         sudoku=self.detector.classifyDigits()
-        
+        self.solver.clearGrid()
         if sudoku is not None:
             print("detected")
             sudoku=sudoku[0]
