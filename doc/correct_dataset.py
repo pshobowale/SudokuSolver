@@ -11,11 +11,11 @@ def press(event):
     label = event.key
 
 def main():
-    file=open("./Dataset1.dat","rb")
+    file=open("./bin/Dataset1.dat","rb")
     dataset1=pickle.load(file)
     file.close()
 
-    file=open("./Dataset2.dat","rb")
+    file=open("./bin/Dataset2.dat","rb")
     dataset2=pickle.load(file)
     file.close()
 
@@ -40,7 +40,7 @@ def main():
             dataset_final.append(dataset1[i])
 
     print("Diffs:", diffs)
-    with open("Dataset_Final.dat", 'wb') as output:  # Overwrites any existing file.
+    with open("./bin/Dataset_Final.dat", 'wb') as output:  # Overwrites any existing file.
         pickle.dump(dataset_final, output)
         output.close()
 

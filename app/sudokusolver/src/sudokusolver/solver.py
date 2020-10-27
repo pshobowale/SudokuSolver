@@ -103,11 +103,16 @@ class solver:
 
     def printPossi(self):
         self.printGrid(R=self.getPossibilitys())
-    def diff2Org(self):
+
+    def diff2Org(self,g=None):
         if self.Org is None:
             return None
-        
-        diff=self.getGrid(self.grid)-self.getGrid(self.Org,ignoreNewPossibilites=True)
+        if g is None and self.grid is not None:
+            g=self.getGrid(self.grid)
+        else:
+            return None
+            
+        diff=g-self.getGrid(self.Org,ignoreNewPossibilites=True)
         self.printGrid(R=diff)
         
         return diff
@@ -164,8 +169,54 @@ class solver:
         print("target: \n",self.grid[:3,:3,0])
         return (self.isSolved,New)
 
-    def getSolution(self):
-        pass
+
+    def getSolution(self,grid=None):
+        if grid is None:
+            if self.Org is None:
+                return
+            else:
+                grid=self.getGrid(self.Org,ignoreNewPossibilites=True)
+
+        def findNextCellToFill(grid, i, j):
+                for x in range(i,9):
+                        for y in range(j,9):
+                                if grid[x][y] == 0:
+                                        return x,y
+                for x in range(0,9):
+                        for y in range(0,9):
+                                if grid[x][y] == 0:
+                                        return x,y
+                return -1,-1
+
+        def isValid(grid, i, j, e):
+                rowOk = all([e != grid[i][x] for x in range(9)])
+                if rowOk:
+                        columnOk = all([e != grid[x][j] for x in range(9)])
+                        if columnOk:
+                                # finding the top left x,y co-ordinates of the section containing the i,j cell
+                                secTopX, secTopY = 3 *(i//3), 3 *(j//3) #floored quotient should be used here. 
+                                for x in range(secTopX, secTopX+3):
+                                        for y in range(secTopY, secTopY+3):
+                                                if grid[x][y] == e:
+                                                        return False
+                                return True
+                return False
+
+        def solveSudoku(grid, i=0, j=0):
+                i,j = findNextCellToFill(grid, i, j)
+                if i == -1:
+                        return True
+                for e in range(1,10):
+                        if isValid(grid,i,j,e):
+                                grid[i][j] = e
+                                if solveSudoku(grid, i, j):
+                                        return True
+                                # Undo the current cell for backtracking
+                                grid[i][j] = 0
+        solveSudoku(grid)
+        return grid
+
+        
 
 if __name__=="__main__":
     solver=solver()
@@ -275,9 +326,9 @@ if __name__=="__main__":
     #Evaluation
 
     
-    case7()
+    case1()
 
-    solver.getObvious()
+    G=solver.getSolution()
 
     print("\n\n Org")
     solver.printOrg()
@@ -286,4 +337,4 @@ if __name__=="__main__":
     print("\n\n Possiblitys")
     solver.printPossi()
     print("\n\n Solution")
-    solver.printGrid()
+    solver.printGrid(R=G)

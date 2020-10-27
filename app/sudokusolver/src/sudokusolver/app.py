@@ -90,6 +90,7 @@ class SudokuSolver(toga.App):
         self.solver.printGrid(G)
         self.solver.printPossi()
         solved=self.solver.diff2Org()
+
         for i in range(9):
             for j in range(9):
                 if(solved[j][i]):
@@ -97,7 +98,15 @@ class SudokuSolver(toga.App):
                     
 
     def solveButton(self,widget):
-        pass
+        self.solver.printGrid
+        G=self.solver.getSolution()
+        solved=G
+        print(solved)
+        for i in range(9):
+            for j in range(9):
+                if(solved[j][i]):
+                    self.grid[i][j].label=str(int(solved[j][i]))
+        
 
     def openButton(self,widget):
         path=self.main_window.open_file_dialog("Select an Image",".",["jpg","jpeg","bmp"])

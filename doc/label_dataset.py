@@ -35,7 +35,7 @@ def main():
             plt.close()
             dataset.append((label,I))
 
-    with open("Dataset.dat", 'wb') as output:  # Overwrites any existing file.
+    with open("./bin/Dataset.dat", 'wb') as output:  # Overwrites any existing file.
         pickle.dump(dataset, output)
         output.close()
 if __name__=="__main__":main()
