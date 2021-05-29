@@ -1,7 +1,7 @@
 # SudokuSolver
 A Sudoku Solver based on Python,BeeWare,OpenCV and SciKit
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/Ar4zWAGIbUU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Ar4zWAGIbUU/0.jpg)](https://www.youtube.com/watch?v=Ar4zWAGIbUU)
 
 ### How it works?
 
