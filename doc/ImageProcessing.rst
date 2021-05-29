@@ -195,6 +195,7 @@ Fourth Step (Finding possible Digits)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Inverting the image
+-  Filtering big lines by morphological operations
 -  Creating an elongated ellipse kernel in the size of possible digits
 -  Using the kernel convolution to find possible positions
 -  Further imporvement of the result by non max supression and
