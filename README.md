@@ -1,13 +1,7 @@
 # SudokuSolver
 A Sudoku Solver based on Python,BeeWare,OpenCV and SciKit
 
-<object width="425" height="350">
-  <param name="movie" value="https://www.youtube.com/watch?v=Ar4zWAGIbUU" />
-  <param name="wmode" value="transparent" />
-  <embed src="https://www.youtube.com/watch?v=Ar4zWAGIbUU"
-         type="application/x-shockwave-flash"
-         wmode="transparent" width="425" height="350" />
-</object>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Ar4zWAGIbUU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ### How it works?
 
