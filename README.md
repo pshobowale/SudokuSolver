@@ -5,7 +5,7 @@ A Sudoku Solver based on Python,BeeWare,OpenCV and SciKit
 
 ### How it works?
 
- Have a look at this Jupyter Notebook to get an idea: https://github.com/pshobowale/SudokuSolver/blob/main/doc/ImageProcessing.ipynb
+ Have a look at this Jupyter Notebook to get an idea: https://github.com/pshobowale/SudokuSolver/blob/main/doc/ImageProcessing.html
 
 
 ### Sudoku Dataset by
